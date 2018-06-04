@@ -129,6 +129,8 @@ public class MainActivity extends AppCompatActivity
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
+    private FirebaseAnalytics mFirebaseAnalytics;
+
 
 
     // Firebase instance variables
@@ -162,9 +164,14 @@ public class MainActivity extends AppCompatActivity
         // Apply config settings and default values.
         mFirebaseRemoteConfig.setConfigSettings(firebaseRemoteConfigSettings);
         mFirebaseRemoteConfig.setDefaults(defaultConfigMap);
+        //endregion
 
-        // Fetch remote config.
-        fetchConfig();
+        //region firebase analystic
+        //Google Analytics for Firebase provides a way for you to understand the way users move through your application,
+        //where they succeed and where they get stuck. It can also be used to understand the most used parts of your application
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+
+
 
         //endregion
 
@@ -371,6 +378,10 @@ public class MainActivity extends AppCompatActivity
                 startActivityForResult(intent, REQUEST_IMAGE);
             }
         });
+
+
+        // Fetch remote config.
+        fetchConfig();
     }
 
     @Override
@@ -407,6 +418,26 @@ public class MainActivity extends AppCompatActivity
                                 }
                             });
                 }
+            }
+        }else if (requestCode == REQUEST_INVITE) {  //Handle the Activity result invite callback, which will indicate whether or not the sending of the invites occurred successfully.
+            if (resultCode == RESULT_OK) {
+                //send event to Firebase Analystic
+                Bundle payload = new Bundle();
+                payload.putString(FirebaseAnalytics.Param.VALUE, "sent invite success");
+                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SHARE,
+                        payload);
+
+                // Check how many invitations were sent and log.
+                String[] ids = AppInviteInvitation.getInvitationIds(resultCode, data);
+                Log.d(TAG, "Invitations sent: " + ids.length);
+            } else {
+                Bundle payload = new Bundle();
+                payload.putString(FirebaseAnalytics.Param.VALUE, "sent invite failed");
+                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SHARE,
+                        payload);
+
+                // Sending failed or it was canceled, show failure message to the user
+                Log.d(TAG, "Failed to send invitation.");
             }
         }
     }
@@ -480,6 +511,12 @@ public class MainActivity extends AppCompatActivity
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
+                        Bundle payload = new Bundle();
+                        payload.putString(FirebaseAnalytics.Param.VALUE, "fetch config success");
+                        mFirebaseAnalytics.logEvent("fetch_Config",
+                                payload);
+
+
                         // Make the fetched config available via
                         // FirebaseRemoteConfig get<type> calls.
                         mFirebaseRemoteConfig.activateFetched();
@@ -506,9 +543,14 @@ public class MainActivity extends AppCompatActivity
     private void applyRetrievedLengthLimit() {
         Long friendly_msg_length =
                 mFirebaseRemoteConfig.getLong("friendly_msg_length");
-        mMessageEditText.setFilters(new InputFilter[]{new
-                InputFilter.LengthFilter(friendly_msg_length.intValue())});
-        Log.d(TAG, "FML is: " + friendly_msg_length);
+        if (friendly_msg_length!=null){
+            mMessageEditText.setFilters(new InputFilter[]{new
+                    InputFilter.LengthFilter(friendly_msg_length.intValue())});
+            Log.d(TAG, "FML is: " + friendly_msg_length);
+        }else{
+            Log.d(TAG, "Failed to load Length Limit");
+        }
+
     }
     //endregion
 
@@ -521,6 +563,13 @@ public class MainActivity extends AppCompatActivity
                 .setCallToActionText(getString(R.string.invitation_cta))
                 .build();
         startActivityForResult(intent, REQUEST_INVITE);
+    }
+    //endregion
+
+    //region Firebase Crashlytics
+    //Firebase Crashlytics allows your application to report when crashes occur and log the events leading up to the crash
+    private void causeCrash(){
+        throw new NullPointerException("Fake null pointer exception");
     }
     //endregion
 
@@ -567,6 +616,13 @@ public class MainActivity extends AppCompatActivity
                 return true;
             case R.id.fresh_config_menu:
                 fetchConfig();
+                return true;
+            case R.id.invite_menu:
+                sendInvitation();
+                return true;
+            case R.id.crash_menu:
+                Log.w("Crashlytics", "Crash button clicked");
+                causeCrash();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

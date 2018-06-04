@@ -17,7 +17,7 @@
 package com.google.firebase.codelab.friendlychat;
 
 import android.support.test.espresso.matcher.ViewMatchers;
-import android.support.test.rule.ActivityTestRule;
+//import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
 
@@ -33,9 +33,13 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 @LargeTest
 public class MainActivityEspressoTest {
 
-    @Rule
-    public ActivityTestRule<MainActivity> mActivityRule =
-            new ActivityTestRule<>(MainActivity.class);
+//    @Rule
+//    public ActivityTestRule<MainActivity> mActivityRule =
+//            new ActivityTestRule<>(MainActivity.class);
 
     // Add instrumentation test here
+    @Test
+    public void verifySignUpButtonDisplayed() {
+        onView(ViewMatchers.withId(R.id.sign_in_button)).check(matches(isDisplayed()));
+    }
 }
