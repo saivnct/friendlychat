@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.firebase.codelab.friendlychat;
+package com.google.firebase.codelab.friendlychat.services;
 
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.firebase.codelab.friendlychat.helper.ListenerHelper;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -32,6 +33,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService{
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         // Handle data payload of FCM messages.
+        ListenerHelper.getInstance().onFirebaseMessageReceived(remoteMessage);
+
         Log.d(TAG, "FCM Message Id: " + remoteMessage.getMessageId());
 
         Log.d(TAG, "FCM Data Message: " + remoteMessage.getData().toString());

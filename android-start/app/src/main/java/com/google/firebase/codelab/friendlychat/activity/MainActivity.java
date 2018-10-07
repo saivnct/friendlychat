@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.firebase.codelab.friendlychat;
+package com.google.firebase.codelab.friendlychat.activity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -27,6 +28,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.InputFilter;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -63,11 +65,16 @@ import com.google.firebase.appindexing.builders.Indexables;
 import com.google.firebase.appindexing.builders.PersonBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.codelab.friendlychat.business.firebasedb.FriendlyMessage;
+import com.google.firebase.codelab.friendlychat.R;
+import com.google.firebase.codelab.friendlychat.helper.ListenerHelper;
+import com.google.firebase.codelab.friendlychat.listeners.FirebaseMessagingListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.RemoteMessage;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.google.firebase.storage.FirebaseStorage;
@@ -79,10 +86,11 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static com.google.firebase.codelab.friendlychat.MyFirebaseInstanceIdService.FRIENDLY_ENGAGE_TOPIC;
+import static com.google.firebase.codelab.friendlychat.helper.StaticData.SharePreferencesConst.FRIENDLY_MSG_LENGTH;
+import static com.google.firebase.codelab.friendlychat.services.MyFirebaseInstanceIdService.FRIENDLY_ENGAGE_TOPIC;
 
 public class MainActivity extends AppCompatActivity
-        implements GoogleApiClient.OnConnectionFailedListener {
+        implements GoogleApiClient.OnConnectionFailedListener, FirebaseMessagingListener {
 
 //    https://codelabs.developers.google.com/codelabs/firebase-android
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
@@ -128,10 +136,9 @@ public class MainActivity extends AppCompatActivity
     private FirebaseUser mFirebaseUser;
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
     private FirebaseAnalytics mFirebaseAnalytics;
-
-
-
     // Firebase instance variables
+
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -329,7 +336,7 @@ public class MainActivity extends AppCompatActivity
 
         mMessageEditText = (EditText) findViewById(R.id.messageEditText);
         mMessageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(mSharedPreferences
-                .getInt(CodelabPreferences.FRIENDLY_MSG_LENGTH, DEFAULT_MSG_LENGTH_LIMIT))});
+                .getInt(FRIENDLY_MSG_LENGTH, DEFAULT_MSG_LENGTH_LIMIT))});
         mMessageEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -564,10 +571,32 @@ public class MainActivity extends AppCompatActivity
     }
     //endregion
 
-    //region Firebase Crashlytics
+    //region Firebase Crashlytics TEST
     //Firebase Crashlytics allows your application to report when crashes occur and log the events leading up to the crash
-    private void causeCrash(){
-        throw new NullPointerException("Fake null pointer exception");
+//    private void causeCrash(){
+//        throw new NullPointerException("Fake null pointer exception");
+//    }
+    //endregion
+
+    //region IMPLEMENT FirebaseMessagingListener
+    @Override
+    public void onMessageReceived(RemoteMessage remoteMessage) {
+        final String body=remoteMessage.getNotification().getBody();
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (!TextUtils.isEmpty(body)){
+                        Toast.makeText(MainActivity.this,"Received FCM!!! "+body,Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(MainActivity.this,"Received FCM!!! ",Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                }
+
+            }
+        });
+
     }
     //endregion
 
@@ -585,9 +614,20 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onStop() {
+        mHandler = null;
+        ListenerHelper.getInstance().removeFirebaseMessagingListener(this);
+        super.onStop();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
+        if (mHandler == null) {
+            mHandler = new Handler();
+        }
         mFirebaseAdapter.startListening();
+        ListenerHelper.getInstance().addFirebaseMessagingListener(this);
     }
 
     @Override
@@ -618,10 +658,10 @@ public class MainActivity extends AppCompatActivity
             case R.id.invite_menu:
                 sendInvitation();
                 return true;
-            case R.id.crash_menu:
-                Log.w("Crashlytics", "Crash button clicked");
-                causeCrash();
-                return true;
+//            case R.id.crash_menu:
+//                Log.w("Crashlytics", "Crash button clicked");
+//                causeCrash();
+//                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
