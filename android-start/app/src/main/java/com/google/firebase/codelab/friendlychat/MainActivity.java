@@ -46,9 +46,6 @@ import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.firebase.ui.database.SnapshotParser;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.appinvite.AppInvite;
 import com.google.android.gms.appinvite.AppInviteInvitation;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.common.ConnectionResult;
@@ -58,6 +55,12 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.appindexing.Action;
+import com.google.firebase.appindexing.FirebaseAppIndex;
+import com.google.firebase.appindexing.FirebaseUserActions;
+import com.google.firebase.appindexing.Indexable;
+import com.google.firebase.appindexing.builders.Indexables;
+import com.google.firebase.appindexing.builders.PersonBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -67,12 +70,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
-import com.google.firebase.appindexing.Action;
-import com.google.firebase.appindexing.FirebaseAppIndex;
-import com.google.firebase.appindexing.FirebaseUserActions;
-import com.google.firebase.appindexing.Indexable;
-import com.google.firebase.appindexing.builders.Indexables;
-import com.google.firebase.appindexing.builders.PersonBuilder;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -87,6 +84,7 @@ import static com.google.firebase.codelab.friendlychat.MyFirebaseInstanceIdServi
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.OnConnectionFailedListener {
 
+//    https://codelabs.developers.google.com/codelabs/firebase-android
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         TextView messageTextView;
         ImageView messageImageView;
@@ -195,18 +193,18 @@ public class MainActivity extends AppCompatActivity
         //co 2 cach gui notify tu firebase den clien
         //1. gui cho toan app
         //2. gui cho nhung client dang ki lang nghe topic nao do
-//        FirebaseMessaging.getInstance()
-//                .subscribeToTopic(FRIENDLY_ENGAGE_TOPIC).addOnCompleteListener(new OnCompleteListener<Void>() {
-//            @Override
-//            public void onComplete(@NonNull Task<Void> task) {
-//                String msg = "subscribe friendly_engage ok";
-//                if (!task.isSuccessful()) {
-//                    msg = "subscribe friendly_engage failed";
-//                }
-//                Log.d(TAG, msg);
-//                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-//            }
-//        });
+        FirebaseMessaging.getInstance()
+                .subscribeToTopic(FRIENDLY_ENGAGE_TOPIC).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                String msg = "subscribe friendly_engage ok";
+                if (!task.isSuccessful()) {
+                    msg = "subscribe friendly_engage failed";
+                }
+                Log.d(TAG, msg);
+                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
         //endregion
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)

@@ -15,6 +15,7 @@
  */
 package com.google.firebase.codelab.friendlychat;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -32,8 +33,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService{
     public void onMessageReceived(RemoteMessage remoteMessage) {
         // Handle data payload of FCM messages.
         Log.d(TAG, "FCM Message Id: " + remoteMessage.getMessageId());
-        Log.d(TAG, "FCM Notification Message: " + remoteMessage.getNotification());
-        Log.d(TAG, "FCM Data Message: " + remoteMessage.getData());
+
+        Log.d(TAG, "FCM Data Message: " + remoteMessage.getData().toString());
+        if (!TextUtils.isEmpty(remoteMessage.getNotification().getBody())){
+            Log.d(TAG, "FCM Notification body Message: " + remoteMessage.getNotification().getBody());
+        }
+        if (!TextUtils.isEmpty(remoteMessage.getNotification().getTitle())){
+            Log.d(TAG, "FCM Notification title Message: " + remoteMessage.getNotification().getTitle());
+        }
     }
 
 }
